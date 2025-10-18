@@ -206,29 +206,45 @@ def execute_function(function_name, arguments):
 
 # 3. Define the conversation inputs
 conversation_inputs = [
-    {"role": "user", "content": "I want to request a day off."},
-    {"role": "user", "content": "2025-11-01."},
-    {"role": "user", "content": "A family event."},
-    # You can test other inputs, e.g.:
-    # {"role": "user", "content": "I want to work from home on 2025-11-02."}
-    # {"role": "user", "content": "I need to come late on 2025-11-03 at 10:00 due to a doctor's appointment."}
-    # {"role": "user", "content": "I want to work 3 hours overtime on 2025-11-04."}
-    # {"role": "user", "content": "I need a laptop and a monitor for work."}
-    # {"role": "user", "content": "Book a meeting room on 2025-11-05 from 14:00 for 2 hours in room A1."}
-    # {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."},
-    # {"role": "user", "content": "I need to work from home on 2025-11-02."},
-    # {"role": "user", "content": "Can you book a meeting room on 2025-11-03 from 14:00 for 2 hours in room A1?"},
-    # {"role": "user", "content": "I need a laptop and a monitor for work."},
-    # {"role": "user", "content": "What's my horoscope? I'm an Aquarius."},
-    # {"role": "user", "content": "I want to work 3 hours overtime on 2025-11-04."},
-    # {"role": "user", "content": "I need to come late on 2025-11-05 at 10:00 due to a doctor's appointment."},
+    "What can you do?",
+    "I want to request a day off.",
+    "2025-11-01.",
+    "Does CEO go to work today?",
+    "How is the weather today?",
+    "A family event.",
+    "I want to work from home on 2025-11-02.",
+    "I need to come late on 2025-11-03 at 10:00 due to a doctor's appointment.",
+    "I want to work 3 hours overtime on 2025-11-04.",
+    "I need a laptop and a monitor for work.",
+    "Book a meeting room on 2025-11-05 from 14:00 for 2 hours in room A1.",
+    "I want to request a day off on 2025-11-01 for a family event.",
+    "I need to work from home on 2025-11-02.",
+    "Can you book a meeting room on 2025-11-03 from 14:00 for 2 hours in room A1?",
+    "I need a laptop and a monitor for work.",
+    "What's my horoscope? I'm an Aquarius.",
+    "I want to work 3 hours overtime on 2025-11-04.",
+    "I need to come late on 2025-11-05 at 10:00 due to a doctor's appointment.",
 ]
 
 # 4. Initialize conversation history
 conversation_history = [
     {
         "role": "system",
-        "content": "You are a helpful assistant that can process various work-related requests using tools. Always respond with the result from the appropriate tool."
+        "content": """
+            You are an internal office assistant that helps employees handle internal requests. Your only responsibilities include:
+                1. Submitting leave requests (vacation, sick leave, etc.)
+                2. Requesting to work remotely
+                3. Requesting to arrive late or leave early
+                4. Requesting overtime approval
+                5. Requesting office equipment or supplies
+                6. Booking meeting rooms
+            When responding, always:
+                - Respond with the result from the appropriate tool.
+                - Be polite, concise, and professional.
+                - Confirm all key details (date, time, reason, duration, etc.).
+                - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
+                - Use a friendly but business-appropriate tone.
+        """
     }
 ]
 
@@ -238,11 +254,11 @@ print()
 # 5. Process each user input sequentially
 for i, user_message in enumerate(conversation_inputs, 1):
     print(f"--- Turn {i} ---")
-    print(f"User: {user_message['content']}")
+    print(f"User: {user_message}")
     print()
     
     # Add user message to conversation history
-    conversation_history.append(user_message)
+    conversation_history.append({"role": "user", "content": user_message})
     
     # First API call: Get model response with tools
     try:
@@ -261,8 +277,8 @@ for i, user_message in enumerate(conversation_inputs, 1):
         if choice.message.tool_calls:
             tool_calls_processed = True
             for tool_call in choice.message.tool_calls:
-                print("Tool call:")
-                print(json.dumps(tool_call.model_dump(), indent=2))
+                # print("Tool call:")
+                # print(json.dumps(tool_call.model_dump(), indent=2))
 
                 function_name = tool_call.function.name
                 try:
@@ -332,4 +348,4 @@ for i, user_message in enumerate(conversation_inputs, 1):
 
 # 6. Print the complete conversation history
 print("=== Complete Conversation History ===")
-print(json.dumps(conversation_history, indent=2, ensure_ascii=False))
+# print(json.dumps(conversation_history, indent=2, ensure_ascii=False))
