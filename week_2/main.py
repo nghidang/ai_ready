@@ -28,23 +28,6 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "get_horoscope",
-            "description": "Get today's horoscope for an astrological sign.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "sign": {
-                        "type": "string",
-                        "description": "An astrological sign like Taurus or Aquarius",
-                    },
-                },
-                "required": ["sign"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "request_day_off",
             "description": "Request a day off from work.",
             "parameters": {
@@ -179,9 +162,6 @@ tools = [
 ]
 
 # 2. Define the functions
-def get_horoscope(sign):
-    return f"{sign}: Next Tuesday you will befriend a baby otter."
-
 def request_day_off(date, reason=None):
     reason_text = f" for {reason}" if reason else ""
     return f"Day off request for {date}{reason_text} has been submitted."
@@ -235,9 +215,7 @@ for choice in response.choices:
             arguments = json.loads(tool_call.function.arguments)
 
             # 4. Execute the appropriate function based on the tool call
-            if function_name == "get_horoscope":
-                result = get_horoscope(arguments["sign"])
-            elif function_name == "request_day_off":
+            if function_name == "request_day_off":
                 result = request_day_off(arguments["date"], arguments.get("reason"))
             elif function_name == "request_wfh":
                 result = request_wfh(arguments["date"])
