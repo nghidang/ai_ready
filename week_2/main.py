@@ -205,26 +205,22 @@ def execute_function(function_name, arguments):
         return f"Error executing function: {str(e)}"
 
 # 3. Define the conversation inputs
-conversation_inputs = [
-    "What can you do?",
-    "I want to request a day off.",
-    "2025-11-01.",
-    "Does CEO go to work today?",
-    "How is the weather today?",
-    "A family event.",
-    "I want to work from home on 2025-11-02.",
-    "I need to come late on 2025-11-03 at 10:00 due to a doctor's appointment.",
-    "I want to work 3 hours overtime on 2025-11-04.",
-    "I need a laptop and a monitor for work.",
-    "Book a meeting room on 2025-11-05 from 14:00 for 2 hours in room A1.",
-    "I want to request a day off on 2025-11-01 for a family event.",
-    "I need to work from home on 2025-11-02.",
-    "Can you book a meeting room on 2025-11-03 from 14:00 for 2 hours in room A1?",
-    "I need a laptop and a monitor for work.",
-    "What's my horoscope? I'm an Aquarius.",
-    "I want to work 3 hours overtime on 2025-11-04.",
-    "I need to come late on 2025-11-05 at 10:00 due to a doctor's appointment.",
-]
+def read_conversation_inputs(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            # Read lines and strip whitespace, ignoring empty lines
+            return [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found")
+        return []
+    except Exception as e:
+        print(f"Error reading file: {str(e)}")
+        return []
+
+# Create responses directory if it doesn't exist
+Path("responses").mkdir(exist_ok=True)
+
+conversation_inputs = read_conversation_inputs("test_cases/case_1.txt")
 
 # 4. Initialize conversation history
 conversation_history = [
@@ -247,6 +243,9 @@ conversation_history = [
         """
     }
 ]
+
+# Initialize dictionary to store conversation for JSON output
+conversation_output = {}
 
 print("=== Starting Conversation ===")
 print()
@@ -273,6 +272,8 @@ for i, user_message in enumerate(conversation_inputs, 1):
     
     # Process tool calls if any
     tool_calls_processed = False
+    final_content = None
+    
     for choice in response.choices:
         if choice.message.tool_calls:
             tool_calls_processed = True
@@ -313,6 +314,7 @@ for i, user_message in enumerate(conversation_inputs, 1):
         
         # If no tool calls, add the assistant message directly
         else:
+            final_content = choice.message.content
             conversation_history.append({
                 "role": "assistant",
                 "content": choice.message.content
@@ -338,14 +340,27 @@ for i, user_message in enumerate(conversation_inputs, 1):
             
         except openai.APIError as e:
             print(f"API error in final response: {e}")
-            continue
+            final_content = f"Error: {str(e)}"
     else:
         # If no tool calls were processed, the first response might already have content
-        if response.choices[0].message.content:
-            print(f"AI: {response.choices[0].message.content}")
+        if response.choices[0].message.content and not final_content:
+            final_content = response.choices[0].message.content
+            print(f"AI: {final_content}")
+    
+    # Store the turn in the conversation output
+    conversation_output[f"turn_{i}"] = {
+        "user": user_message,
+        "ai": final_content or "No response generated"
+    }
     
     print()
 
-# 6. Print the complete conversation history
 print("=== Complete Conversation History ===")
-# print(json.dumps(conversation_history, indent=2, ensure_ascii=False))
+
+# 6. Print the complete conversation history
+try:
+    with open("responses/case_1.json", "w", encoding="utf-8") as f:
+        json.dump(conversation_output, f, indent=2, ensure_ascii=False)
+    print("Conversation saved to conversation_output.json")
+except Exception as e:
+    print(f"Error saving conversation to JSON: {str(e)}")
