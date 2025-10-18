@@ -220,147 +220,163 @@ def read_conversation_inputs(file_path):
 # Create responses directory if it doesn't exist
 Path("responses").mkdir(exist_ok=True)
 
-conversation_inputs = read_conversation_inputs("test_cases/case_1.txt")
+# Process each .txt file in the test_cases folder
+test_cases_dir = "test_cases"
+responses_dir = "responses"
 
-# 4. Initialize conversation history
-conversation_history = [
-    {
-        "role": "system",
-        "content": """
-            You are an internal office assistant that helps employees handle internal requests. Your only responsibilities include:
-                1. Submitting leave requests (vacation, sick leave, etc.)
-                2. Requesting to work remotely
-                3. Requesting to arrive late or leave early
-                4. Requesting overtime approval
-                5. Requesting office equipment or supplies
-                6. Booking meeting rooms
-            When responding, always:
-                - Respond with the result from the appropriate tool.
-                - Be polite, concise, and professional.
-                - Confirm all key details (date, time, reason, duration, etc.).
-                - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
-                - Use a friendly but business-appropriate tone.
-        """
-    }
-]
-
-# Initialize dictionary to store conversation for JSON output
-conversation_output = {}
-
-print("=== Starting Conversation ===")
-print()
-
-# 5. Process each user input sequentially
-for i, user_message in enumerate(conversation_inputs, 1):
-    print(f"--- Turn {i} ---")
-    print(f"User: {user_message}")
-    print()
-    
-    # Add user message to conversation history
-    conversation_history.append({"role": "user", "content": user_message})
-    
-    # First API call: Get model response with tools
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            tools=tools,
-            messages=conversation_history,
-        )
-    except openai.APIError as e:
-        print(f"API error: {e}")
-        continue
-    
-    # Process tool calls if any
-    tool_calls_processed = False
-    final_content = None
-    
-    for choice in response.choices:
-        if choice.message.tool_calls:
-            tool_calls_processed = True
-            for tool_call in choice.message.tool_calls:
-                # print("Tool call:")
-                # print(json.dumps(tool_call.model_dump(), indent=2))
-
-                function_name = tool_call.function.name
-                try:
-                    arguments = json.loads(tool_call.function.arguments)
-                except json.JSONDecodeError:
-                    arguments = {}
-                
-                # Execute the function
-                result = execute_function(function_name, arguments)
-                
-                # Add assistant message with tool call
-                conversation_history.append({
-                    "role": "assistant",
-                    "content": None,
-                    "tool_calls": [{
-                        "id": tool_call.id,
-                        "type": "function",
-                        "function": {
-                            "name": function_name,
-                            "arguments": tool_call.function.arguments
-                        }
-                    }]
-                })
-                
-                # Add tool response
-                conversation_history.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "name": function_name,
-                    "content": json.dumps({"result": result})
-                })
+for filename in os.listdir(test_cases_dir):
+    if filename.endswith('.txt'):
+        input_path = os.path.join(test_cases_dir, filename)
+        output_filename = os.path.splitext(filename)[0] + '.json'
+        output_path = os.path.join(responses_dir, output_filename)
         
-        # If no tool calls, add the assistant message directly
-        else:
-            final_content = choice.message.content
-            conversation_history.append({
-                "role": "assistant",
-                "content": choice.message.content
-            })
-    
-    # Second API call: Get final response from model
-    if tool_calls_processed:
         try:
-            response = client.chat.completions.create(
-                model=model,
-                tools=tools,
-                messages=conversation_history,
-            )
-            
-            # Add final assistant response to history
-            final_content = response.choices[0].message.content
-            conversation_history.append({
-                "role": "assistant",
-                "content": final_content
-            })
-            
-            print(f"AI: {final_content}")
-            
-        except openai.APIError as e:
-            print(f"API error in final response: {e}")
-            final_content = f"Error: {str(e)}"
-    else:
-        # If no tool calls were processed, the first response might already have content
-        if response.choices[0].message.content and not final_content:
-            final_content = response.choices[0].message.content
-            print(f"AI: {final_content}")
-    
-    # Store the turn in the conversation output
-    conversation_output[f"turn_{i}"] = {
-        "user": user_message,
-        "ai": final_content or "No response generated"
-    }
-    
-    print()
+            conversation_inputs = read_conversation_inputs(input_path)
 
-print("=== Complete Conversation History ===")
+            # 4. Initialize conversation history
+            conversation_history = [
+                {
+                    "role": "system",
+                    "content": """
+                        You are an internal office assistant that helps employees handle internal requests. Your only responsibilities include:
+                            1. Submitting leave requests (vacation, sick leave, etc.)
+                            2. Requesting to work remotely
+                            3. Requesting to arrive late or leave early
+                            4. Requesting overtime approval
+                            5. Requesting office equipment or supplies
+                            6. Booking meeting rooms
+                        When responding, always:
+                            - Respond with the result from the appropriate tool.
+                            - Be polite, concise, and professional.
+                            - Confirm all key details (date, time, reason, duration, etc.).
+                            - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
+                            - Use a friendly but business-appropriate tone.
+                    """
+                }
+            ]
 
-# 6. Print the complete conversation history
-try:
-    with open("responses/case_1.json", "w", encoding="utf-8") as f:
-        json.dump(conversation_output, f, indent=2, ensure_ascii=False)
-    print("Conversation saved to conversation_output.json")
-except Exception as e:
-    print(f"Error saving conversation to JSON: {str(e)}")
+            # Initialize dictionary to store conversation for JSON output
+            conversation_output = {}
+
+            print("=== Starting Conversation ===")
+            print()
+
+            # 5. Process each user input sequentially
+            for i, user_message in enumerate(conversation_inputs, 1):
+                print(f"--- Turn {i} ---")
+                print(f"User: {user_message}")
+                print()
+                
+                # Add user message to conversation history
+                conversation_history.append({"role": "user", "content": user_message})
+                
+                # First API call: Get model response with tools
+                try:
+                    response = client.chat.completions.create(
+                        model=model,
+                        tools=tools,
+                        messages=conversation_history,
+                    )
+                except openai.APIError as e:
+                    print(f"API error: {e}")
+                    continue
+                
+                # Process tool calls if any
+                tool_calls_processed = False
+                final_content = None
+                
+                for choice in response.choices:
+                    if choice.message.tool_calls:
+                        tool_calls_processed = True
+                        for tool_call in choice.message.tool_calls:
+                            # print("Tool call:")
+                            # print(json.dumps(tool_call.model_dump(), indent=2))
+
+                            function_name = tool_call.function.name
+                            try:
+                                arguments = json.loads(tool_call.function.arguments)
+                            except json.JSONDecodeError:
+                                arguments = {}
+                            
+                            # Execute the function
+                            result = execute_function(function_name, arguments)
+                            
+                            # Add assistant message with tool call
+                            conversation_history.append({
+                                "role": "assistant",
+                                "content": None,
+                                "tool_calls": [{
+                                    "id": tool_call.id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": function_name,
+                                        "arguments": tool_call.function.arguments
+                                    }
+                                }]
+                            })
+                            
+                            # Add tool response
+                            conversation_history.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": function_name,
+                                "content": json.dumps({"result": result})
+                            })
+                    
+                    # If no tool calls, add the assistant message directly
+                    else:
+                        final_content = choice.message.content
+                        conversation_history.append({
+                            "role": "assistant",
+                            "content": choice.message.content
+                        })
+                
+                # Second API call: Get final response from model
+                if tool_calls_processed:
+                    try:
+                        response = client.chat.completions.create(
+                            model=model,
+                            tools=tools,
+                            messages=conversation_history,
+                        )
+                        
+                        # Add final assistant response to history
+                        final_content = response.choices[0].message.content
+                        conversation_history.append({
+                            "role": "assistant",
+                            "content": final_content
+                        })
+                        
+                        print(f"AI: {final_content}")
+                        
+                    except openai.APIError as e:
+                        print(f"API error in final response: {e}")
+                        final_content = f"Error: {str(e)}"
+                else:
+                    # If no tool calls were processed, the first response might already have content
+                    if response.choices[0].message.content and not final_content:
+                        final_content = response.choices[0].message.content
+                        print(f"AI: {final_content}")
+                
+                # Store the turn in the conversation output
+                conversation_output[f"turn_{i}"] = {
+                    "user": user_message,
+                    "ai": final_content or "No response generated"
+                }
+                
+                print()
+
+            print("=== Complete Conversation History ===")
+
+            # 6. Print the complete conversation history
+            try:
+                with open(output_path, "w", encoding="utf-8") as f:
+                    json.dump(conversation_output, f, indent=2, ensure_ascii=False)
+                print(f"Processed {filename} -> {output_filename}")
+            except Exception as e:
+                print(f"Error saving conversation to JSON: {str(e)}")
+            
+        except Exception as e:
+            print(f"Error processing {filename}: {str(e)}")
+
+print("\nAll files processed successfully!")
