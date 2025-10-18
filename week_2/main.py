@@ -182,6 +182,28 @@ def request_assets(assets):
 def book_meeting_room(date, start_time, duration, room_id):
     return f"Meeting room {room_id} booked on {date} from {start_time} for {duration} hours."
 
+def execute_function(function_name, arguments):
+    """Helper function to execute the appropriate function based on the tool call"""
+    try:
+        if function_name == "request_day_off":
+            return request_day_off(arguments["date"], arguments.get("reason"))
+        elif function_name == "request_wfh":
+            return request_wfh(arguments["date"])
+        elif function_name == "request_late_coming":
+            return request_late_coming(arguments["date"], arguments["time"], arguments.get("reason"))
+        elif function_name == "request_overtime":
+            return request_overtime(arguments["date"], arguments["hours"])
+        elif function_name == "request_assets":
+            return request_assets(arguments["assets"])
+        elif function_name == "book_meeting_room":
+            return book_meeting_room(arguments["date"], arguments["start_time"], arguments["duration"], arguments["room_id"])
+        else:
+            return f"Unknown function: {function_name}"
+    except KeyError as e:
+        return f"Error: Missing required parameter {e}"
+    except Exception as e:
+        return f"Error executing function: {str(e)}"
+
 # Create a running input list we will add to over time
 input_list = [
     {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."},
@@ -218,20 +240,7 @@ for choice in response.choices:
             arguments = json.loads(tool_call.function.arguments)
 
             # 4. Execute the appropriate function based on the tool call
-            if function_name == "request_day_off":
-                result = request_day_off(arguments["date"], arguments.get("reason"))
-            elif function_name == "request_wfh":
-                result = request_wfh(arguments["date"])
-            elif function_name == "request_late_coming":
-                result = request_late_coming(arguments["date"], arguments["time"], arguments.get("reason"))
-            elif function_name == "request_overtime":
-                result = request_overtime(arguments["date"], arguments["hours"])
-            elif function_name == "request_assets":
-                result = request_assets(arguments["assets"])
-            elif function_name == "book_meeting_room":
-                result = book_meeting_room(arguments["date"], arguments["start_time"], arguments["duration"], arguments["room_id"])
-            else:
-                result = f"Unknown function: {function_name}"
+            result = execute_function(function_name, arguments)
 
             # 5. Append the tool call and its result to input_list
             input_list.append({
