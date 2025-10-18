@@ -1,7 +1,13 @@
 import os
 import json
-import datetime
 from pathlib import Path
+import openai
+
+client = openai.OpenAI(
+    base_url="https://aiportalapi.stu-platform.live/use",
+    api_key="sk-amNWISclq5ZTRgAcgOBXzw"
+)
+
 
 # Create responses directory if it doesn't exist
 Path("responses").mkdir(exist_ok=True)
@@ -27,16 +33,15 @@ for filename in os.listdir(test_cases_dir):
             Focus on the main discussion points, decisions made, and specific tasks assigned to each attendee, including deadlines where applicable. 
             The meeting transcript:\n\n{text}
             """
+
+            response = client.chat.completions.create(
+                model="GPT-5-mini",
+                messages=[{"role": "user", "content": prompt}]
+            )
             
-            # Prepare the result as a dictionary
-            result = {
-                "filename": filename,
-                "prompt": prompt.strip(),
-                "metadata": {
-                    "processed_at": str(datetime.datetime.now()),
-                    "source_file": filename
-                }
-            }
+            # Get the response content
+            result = response.choices[0].message.content
+            print(result)
             
             # Write the result to a JSON file
             with open(output_path, 'w', encoding='utf-8') as file:
