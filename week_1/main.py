@@ -8,12 +8,16 @@ import openai
 load_dotenv()
 
 # Read configuration from environment variables
+model = os.getenv('MODEL')
 base_url = os.getenv('OPENAI_BASE_URL')
 api_key = os.getenv('OPENAI_API_KEY')
+if not model:
+    raise ValueError("MODEL is not set in .env file")
 if not base_url:
     raise ValueError("OPENAI_BASE_URL is not set in .env file")
 if not api_key:
     raise ValueError("OPENAI_API_KEY is not set in .env file")
+print(model)
 print(base_url)
 print(api_key)
 
@@ -47,14 +51,14 @@ for filename in os.listdir(test_cases_dir):
             The meeting transcript:\n\n{text}
             """
 
-            # response = client.chat.completions.create(
-            #     model="GPT-5-mini",
-            #     messages=[{"role": "user", "content": prompt}]
-            # )
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}]
+            )
             
-            # # Get the response content
-            result = 'response.choices[0].message.content'
-            # print(result)
+            # Get the response content
+            result = response.choices[0].message.content
+            print(result)
             
             # Write the result to a JSON file
             with open(output_path, 'w', encoding='utf-8') as file:
