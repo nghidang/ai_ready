@@ -184,7 +184,10 @@ def book_meeting_room(date, start_time, duration, room_id):
 
 # Create a running input list we will add to over time
 input_list = [
-    {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."}
+    {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."},
+    {"role": "user", "content": "I want to request a day off."},
+    {"role": "user", "content": "2025-11-01."},
+    {"role": "user", "content": "A family event."},
     # You can test other inputs, e.g.:
     # {"role": "user", "content": "I want to work from home on 2025-11-02."}
     # {"role": "user", "content": "I need to come late on 2025-11-03 at 10:00 due to a doctor's appointment."}
