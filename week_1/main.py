@@ -1,13 +1,26 @@
 import os
 import json
 from pathlib import Path
+from dotenv import load_dotenv
 import openai
 
-client = openai.OpenAI(
-    base_url="https://aiportalapi.stu-platform.live/use",
-    api_key="sk-amNWISclq5ZTRgAcgOBXzw"
-)
+# Load environment variables from .env file
+load_dotenv()
 
+# Read configuration from environment variables
+base_url = os.getenv('OPENAI_BASE_URL')
+api_key = os.getenv('OPENAI_API_KEY')
+if not base_url:
+    raise ValueError("OPENAI_BASE_URL is not set in .env file")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY is not set in .env file")
+print(base_url)
+print(api_key)
+
+client = openai.OpenAI(
+    base_url=base_url,
+    api_key=api_key
+)
 
 # Create responses directory if it doesn't exist
 Path("responses").mkdir(exist_ok=True)
@@ -34,14 +47,14 @@ for filename in os.listdir(test_cases_dir):
             The meeting transcript:\n\n{text}
             """
 
-            response = client.chat.completions.create(
-                model="GPT-5-mini",
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # response = client.chat.completions.create(
+            #     model="GPT-5-mini",
+            #     messages=[{"role": "user", "content": prompt}]
+            # )
             
-            # Get the response content
-            result = response.choices[0].message.content
-            print(result)
+            # # Get the response content
+            result = 'response.choices[0].message.content'
+            # print(result)
             
             # Write the result to a JSON file
             with open(output_path, 'w', encoding='utf-8') as file:

@@ -1,3 +1,4 @@
 # compiled output
 /venv
 */responses
+.env
