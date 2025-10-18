@@ -204,86 +204,132 @@ def execute_function(function_name, arguments):
     except Exception as e:
         return f"Error executing function: {str(e)}"
 
-# Create a running input list we will add to over time
+# 3. Define the conversation inputs
 conversation_inputs = [
-    {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."},
-    # {"role": "user", "content": "I want to request a day off."},
-    # {"role": "user", "content": "2025-11-01."},
-    # {"role": "user", "content": "A family event."},
+    {"role": "user", "content": "I want to request a day off."},
+    {"role": "user", "content": "2025-11-01."},
+    {"role": "user", "content": "A family event."},
     # You can test other inputs, e.g.:
     # {"role": "user", "content": "I want to work from home on 2025-11-02."}
     # {"role": "user", "content": "I need to come late on 2025-11-03 at 10:00 due to a doctor's appointment."}
     # {"role": "user", "content": "I want to work 3 hours overtime on 2025-11-04."}
     # {"role": "user", "content": "I need a laptop and a monitor for work."}
     # {"role": "user", "content": "Book a meeting room on 2025-11-05 from 14:00 for 2 hours in room A1."}
+    # {"role": "user", "content": "I want to request a day off on 2025-11-01 for a family event."},
+    # {"role": "user", "content": "I need to work from home on 2025-11-02."},
+    # {"role": "user", "content": "Can you book a meeting room on 2025-11-03 from 14:00 for 2 hours in room A1?"},
+    # {"role": "user", "content": "I need a laptop and a monitor for work."},
+    # {"role": "user", "content": "What's my horoscope? I'm an Aquarius."},
+    # {"role": "user", "content": "I want to work 3 hours overtime on 2025-11-04."},
+    # {"role": "user", "content": "I need to come late on 2025-11-05 at 10:00 due to a doctor's appointment."},
 ]
 
-# 3. Prompt the model with tools defined
-try:
-    response = client.chat.completions.create(
-        model=model,
-        tools=tools,
-        messages=conversation_inputs,
-    )
-except openai.APIError as e:
-    print(f"API error: {e}")
-    raise
+# 4. Initialize conversation history
+conversation_history = [
+    {
+        "role": "system",
+        "content": "You are a helpful assistant that can process various work-related requests using tools. Always respond with the result from the appropriate tool."
+    }
+]
 
-# Process the response and append to conversation_inputs
-for choice in response.choices:
-    if choice.message.tool_calls:
-        for tool_call in choice.message.tool_calls:
-            print("Tool call:")
-            print(json.dumps(tool_call.model_dump(), indent=2))
+print("=== Starting Conversation ===")
+print()
 
-            function_name = tool_call.function.name
-            arguments = json.loads(tool_call.function.arguments)
+# 5. Process each user input sequentially
+for i, user_message in enumerate(conversation_inputs, 1):
+    print(f"--- Turn {i} ---")
+    print(f"User: {user_message['content']}")
+    print()
+    
+    # Add user message to conversation history
+    conversation_history.append(user_message)
+    
+    # First API call: Get model response with tools
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            tools=tools,
+            messages=conversation_history,
+        )
+    except openai.APIError as e:
+        print(f"API error: {e}")
+        continue
+    
+    # Process tool calls if any
+    tool_calls_processed = False
+    for choice in response.choices:
+        if choice.message.tool_calls:
+            tool_calls_processed = True
+            for tool_call in choice.message.tool_calls:
+                print("Tool call:")
+                print(json.dumps(tool_call.model_dump(), indent=2))
 
-            # 4. Execute the appropriate function based on the tool call
-            result = execute_function(function_name, arguments)
-
-            # 5. Append the tool call and its result to conversation_inputs
-            conversation_inputs.append({
+                function_name = tool_call.function.name
+                try:
+                    arguments = json.loads(tool_call.function.arguments)
+                except json.JSONDecodeError:
+                    arguments = {}
+                
+                # Execute the function
+                result = execute_function(function_name, arguments)
+                
+                # Add assistant message with tool call
+                conversation_history.append({
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [{
+                        "id": tool_call.id,
+                        "type": "function",
+                        "function": {
+                            "name": function_name,
+                            "arguments": tool_call.function.arguments
+                        }
+                    }]
+                })
+                
+                # Add tool response
+                conversation_history.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": function_name,
+                    "content": json.dumps({"result": result})
+                })
+        
+        # If no tool calls, add the assistant message directly
+        else:
+            conversation_history.append({
                 "role": "assistant",
-                "content": None,
-                "tool_calls": [{
-                    "id": tool_call.id,
-                    "type": "function",
-                    "function": {
-                        "name": function_name,
-                        "arguments": tool_call.function.arguments
-                    }
-                }]
+                "content": choice.message.content
             })
-            conversation_inputs.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "name": function_name,
-                "content": json.dumps({"result": result})
+    
+    # Second API call: Get final response from model
+    if tool_calls_processed:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                tools=tools,
+                messages=conversation_history,
+            )
+            
+            # Add final assistant response to history
+            final_content = response.choices[0].message.content
+            conversation_history.append({
+                "role": "assistant",
+                "content": final_content
             })
+            
+            print(f"AI: {final_content}")
+            
+        except openai.APIError as e:
+            print(f"API error in final response: {e}")
+            continue
+    else:
+        # If no tool calls were processed, the first response might already have content
+        if response.choices[0].message.content:
+            print(f"AI: {response.choices[0].message.content}")
+    
+    print()
 
-print("Final input:")
-print(json.dumps(conversation_inputs, indent=2))
-
-# 6. Prompt the model again with the updated conversation_inputs
-# Using a system message for instructions
-# conversation_inputs_with_instructions = [
-#     {
-#         "role": "system",
-#         "content": "Respond only with the result generated by a tool."
-#     }
-# ] + conversation_inputs
-
-try:
-    response = client.chat.completions.create(
-        model=model,
-        tools=tools,
-        messages=conversation_inputs,
-    )
-except openai.APIError as e:
-    print(f"API error: {e}")
-    raise
-
-# 7. Print the final output
-print("Final output:")
-print(response.choices[0].message.content)
+# 6. Print the complete conversation history
+print("=== Complete Conversation History ===")
+print(json.dumps(conversation_history, indent=2, ensure_ascii=False))
