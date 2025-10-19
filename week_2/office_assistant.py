@@ -196,7 +196,7 @@ def process_conversation(client, model, conversation_history, user_message, tool
         )
     except openai.APIError as e:
         final_content = f"API error: {e}"
-        print(final_content)
+        # print(final_content)
         return conversation_history, final_content
     
     # Process tool calls if any
@@ -265,15 +265,15 @@ def process_conversation(client, model, conversation_history, user_message, tool
                 "content": final_content
             })
             
-            print(f"AI: {final_content}")
+            # print(f"AI: {final_content}")
             
         except openai.APIError as e:
-            print(f"API error in final response: {e}")
+            # print(f"API error in final response: {e}")
             final_content = f"Error: {str(e)}"
     else:
         # If no tool calls were processed, the first response might already have content
         if response.choices[0].message.content and not final_content:
             final_content = response.choices[0].message.content
-            print(f"AI: {final_content}")
+            # print(f"AI: {final_content}")
 
     return conversation_history, final_content
