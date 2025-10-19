@@ -1,5 +1,15 @@
 import json
 import openai
+import os
+from dotenv import load_dotenv
+import tiktoken
+
+# Load environment variables from .env file
+load_dotenv()
+
+MAX_TOKENS = int(os.getenv('MAX_TOKENS', 200))
+if not MAX_TOKENS:
+    raise ValueError("MAX_TOKENS is not set in .env file")
 
 # System prompt for the assistant
 SYSTEM_PROMPT = """
@@ -201,6 +211,14 @@ def execute_function(function_name, arguments):
 
 def process_conversation(client, model, conversation_history, user_message, tools=tools):
     """Process a single user message and return the updated history and response"""
+    encoding = tiktoken.get_encoding("cl100k_base")  # Hoặc chọn tokenizer phù hợp
+    token_count = len(encoding.encode(user_message))
+
+    if token_count > MAX_TOKENS:
+        error_message = f"Error: Your request is too long ({token_count} tokens). Please keep it under {MAX_TOKENS} tokens."
+        conversation_history.append({"role": "assistant", "content": error_message})
+        return conversation_history, error_message
+
     # Add user message to conversation history
     conversation_history.append({"role": "user", "content": user_message})
     
