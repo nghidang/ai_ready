@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch, Mock
 from dotenv import load_dotenv
 import openai
-from office_assistant import tools, process_conversation
+from office_assistant import SYSTEM_PROMPT, tools, process_conversation
 
 # Load environment variables
 load_dotenv()

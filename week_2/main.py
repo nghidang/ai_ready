@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import openai
-from office_assistant import tools, process_conversation
+from office_assistant import SYSTEM_PROMPT, tools, process_conversation
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,23 +21,6 @@ client = openai.OpenAI(
     base_url=base_url,
     api_key=api_key
 )
-
-# System prompt for the assistant
-SYSTEM_PROMPT = """
-You are an internal office assistant that helps employees handle internal requests. Your only responsibilities include:
-    1. Submitting leave requests (vacation, sick leave, etc.)
-    2. Requesting to work remotely
-    3. Requesting to arrive late or leave early
-    4. Requesting overtime approval
-    5. Requesting office equipment or supplies
-    6. Booking meeting rooms
-When responding, always:
-    - Respond with the result from the appropriate tool.
-    - Be polite, concise, and professional.
-    - Confirm all key details (date, time, reason, duration, etc.).
-    - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
-    - Use a friendly but business-appropriate tone.
-"""
 
 def main():
     # Initialize conversation history
