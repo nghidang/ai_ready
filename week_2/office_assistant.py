@@ -184,37 +184,41 @@ def execute_function(function_name, arguments):
 
 def process_conversation(client, model, conversation_history, user_message, tools=tools):
     """Process a single user message and return the updated history and response"""
+    # Add user message to conversation history
     conversation_history.append({"role": "user", "content": user_message})
-    conversation_output = {"user": user_message, "ai": None}
-
+    
+    # First API call: Get model response with tools
     try:
-        # First API call: Get model response with tools
         response = client.chat.completions.create(
             model=model,
             tools=tools,
             messages=conversation_history,
         )
     except openai.APIError as e:
-        conversation_output["ai"] = f"API error: {str(e)}"
-        return conversation_history, conversation_output
-
+        final_content = f"API error: {e}"
+        print(final_content)
+        return conversation_history, final_content
+    
     # Process tool calls if any
     tool_calls_processed = False
     final_content = None
-
+    
     for choice in response.choices:
         if choice.message.tool_calls:
             tool_calls_processed = True
             for tool_call in choice.message.tool_calls:
+                # print("Tool call:")
+                # print(json.dumps(tool_call.model_dump(), indent=2))
+
                 function_name = tool_call.function.name
                 try:
                     arguments = json.loads(tool_call.function.arguments)
                 except json.JSONDecodeError:
                     arguments = {}
-
+                
                 # Execute the function
                 result = execute_function(function_name, arguments)
-
+                
                 # Add assistant message with tool call
                 conversation_history.append({
                     "role": "assistant",
@@ -228,7 +232,7 @@ def process_conversation(client, model, conversation_history, user_message, tool
                         }
                     }]
                 })
-
+                
                 # Add tool response
                 conversation_history.append({
                     "role": "tool",
@@ -236,16 +240,16 @@ def process_conversation(client, model, conversation_history, user_message, tool
                     "name": function_name,
                     "content": json.dumps({"result": result})
                 })
-
+        
         # If no tool calls, add the assistant message directly
         else:
             final_content = choice.message.content
             conversation_history.append({
                 "role": "assistant",
-                "content": final_content
+                "content": choice.message.content
             })
-
-    # Second API call: Get final response from model if tool calls were processed
+    
+    # Second API call: Get final response from model
     if tool_calls_processed:
         try:
             response = client.chat.completions.create(
@@ -253,13 +257,23 @@ def process_conversation(client, model, conversation_history, user_message, tool
                 tools=tools,
                 messages=conversation_history,
             )
+            
+            # Add final assistant response to history
             final_content = response.choices[0].message.content
             conversation_history.append({
                 "role": "assistant",
                 "content": final_content
             })
+            
+            print(f"AI: {final_content}")
+            
         except openai.APIError as e:
-            final_content = f"API error in final response: {str(e)}"
+            print(f"API error in final response: {e}")
+            final_content = f"Error: {str(e)}"
+    else:
+        # If no tool calls were processed, the first response might already have content
+        if response.choices[0].message.content and not final_content:
+            final_content = response.choices[0].message.content
+            print(f"AI: {final_content}")
 
-    conversation_output["ai"] = final_content or "No response generated"
-    return conversation_history, conversation_output
+    return conversation_history, final_content
