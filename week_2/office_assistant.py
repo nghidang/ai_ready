@@ -282,20 +282,16 @@ def detect_audio_request(user_message: str) -> bool:
     
     return False
 
-def generate_audio_response(text: str, enable_tts: bool = True) -> str:
+def generate_audio_response(text: str) -> str:
     """
     Generate audio response from text using TTS
     
     Args:
         text: Text to convert to speech
-        enable_tts: Whether to enable TTS functionality
         
     Returns:
         Path to audio file if successful, empty string otherwise
     """
-    if not enable_tts:
-        return ""
-    
     try:
         # Clean text for TTS (remove markdown formatting, etc.)
         clean_text = text.replace('**', '').replace('*', '').replace('\n', ' ')
@@ -315,7 +311,7 @@ def generate_audio_response(text: str, enable_tts: bool = True) -> str:
         print(f"⚠️  TTS error: {e}")
         return ""
 
-def process_conversation(client, model, conversation_history, user_message, tools=tools, enable_tts: bool = True):
+def process_conversation(client, model, conversation_history, user_message, tools=tools):
     """Process a single user message and return the updated history and response"""
     encoding = tiktoken.get_encoding("cl100k_base")  # Hoặc chọn tokenizer phù hợp
     token_count = len(encoding.encode(user_message))
@@ -417,8 +413,8 @@ def process_conversation(client, model, conversation_history, user_message, tool
             final_content = response.choices[0].message.content
             # print(f"AI: {final_content}")
 
-    # Generate audio response only if TTS is enabled, we have content, and user requested audio
-    if final_content and enable_tts and detect_audio_request(user_message):
-        generate_audio_response(final_content, enable_tts)
+    # Generate audio response if we have content and user requested audio
+    if final_content and detect_audio_request(user_message):
+        generate_audio_response(final_content)
 
     return conversation_history, final_content

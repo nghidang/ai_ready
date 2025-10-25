@@ -1,5 +1,4 @@
 import os
-import argparse
 from dotenv import load_dotenv
 import openai
 from office_assistant import SYSTEM_PROMPT, tools, process_conversation
@@ -24,14 +23,6 @@ client = openai.OpenAI(
 )
 
 def main():
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Office Assistant with TTS support")
-    parser.add_argument("--tts", action="store_true", help="Enable text-to-speech audio responses")
-    parser.add_argument("--no-tts", action="store_true", help="Disable text-to-speech audio responses")
-    args = parser.parse_args()
-    
-    # Determine TTS setting
-    enable_tts = args.tts or (not args.no_tts)  # Default to enabled unless explicitly disabled
     
     # Initialize conversation history
     conversation_history = [
@@ -42,10 +33,7 @@ def main():
     ]
 
     print("=== Office Assistant ===")
-    if enable_tts:
-        print("🔊 Audio responses available (request with keywords like 'audio', 'voice', 'speak')")
-    else:
-        print("🔇 Audio responses disabled")
+    print("🔊 Audio responses available (request with keywords like 'audio', 'voice', 'speak')")
     
     print("I can help you with:")
     print("- Leave requests (vacation, sick leave)")
@@ -75,7 +63,7 @@ def main():
         # Process the user message
         try:
             conversation_history, final_content = process_conversation(
-                client, model, conversation_history, user_message, tools, enable_tts
+                client, model, conversation_history, user_message, tools
             )
             print(f"Assistant: {final_content or 'No response generated'}\n")
         except Exception as e:
