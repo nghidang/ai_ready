@@ -1,0 +1,102 @@
+[
+  {
+    "id": "leave_policy_1",
+    "text": "Employees are entitled to 20 days of paid leave per calendar year. Leave requests must be submitted at least 2 weeks in advance and require manager approval. Unused leave can be carried over up to 5 days to the next year.",
+    "metadata": {
+      "category": "Leave Policy",
+      "version": "2.1",
+      "effective_date": "2024-01-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "sick_leave_1",
+    "text": "Employees are entitled to 10 days of paid sick leave per year. For sick leave exceeding 3 consecutive days, a medical certificate is required. Sick leave can be taken in half-day increments.",
+    "metadata": {
+      "category": "Leave Policy",
+      "version": "1.3",
+      "effective_date": "2024-01-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "remote_work_1",
+    "text": "Employees may work remotely up to 3 days per week with prior manager approval. Remote work days must be consistent week-to-week. Employees must be available during core business hours (10am-3pm) and maintain a professional work environment at home.",
+    "metadata": {
+      "category": "Work Arrangement",
+      "version": "3.0",
+      "effective_date": "2024-06-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "overtime_1",
+    "text": "Overtime must be pre-approved by the direct supervisor. Non-exempt employees will be compensated at 1.5x their regular hourly rate for hours worked over 40 hours per week. All overtime must be documented and submitted by the 1st of the following month.",
+    "metadata": {
+      "category": "Compensation",
+      "version": "2.2",
+      "effective_date": "2024-01-15",
+      "department": "All"
+    }
+  },
+  {
+    "id": "expense_1",
+    "text": "Business-related expenses must be pre-approved for amounts over $100. Submit expense reports within 14 days with original receipts. Air travel must be booked in economy class unless otherwise approved. Meals are reimbursed up to $25 for lunch and $50 for dinner.",
+    "metadata": {
+      "category": "Expense Policy",
+      "version": "1.5",
+      "effective_date": "2024-03-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "it_security_1",
+    "text": "All employees must use strong passwords (minimum 12 characters with mixed case, numbers, and special characters). Company devices must have automatic screen lock after 5 minutes of inactivity. Personal devices used for work must have company-approved security software installed.",
+    "metadata": {
+      "category": "IT Security",
+      "version": "4.0",
+      "effective_date": "2024-05-15",
+      "department": "All"
+    }
+  },
+  {
+    "id": "dress_code_1",
+    "text": "Business casual attire is required Monday through Thursday. Jeans are allowed on Fridays. Clothing should be neat, clean, and appropriate for a professional environment. Team members with client meetings should dress one level above the client's dress code.",
+    "metadata": {
+      "category": "Workplace Conduct",
+      "version": "1.2",
+      "effective_date": "2024-02-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "probation_1",
+    "text": "New employees serve a 90-day probationary period. During this time, employment may be terminated with 1 week's notice. Benefits begin after successful completion of the probationary period. Performance reviews are conducted at 45 and 90 days.",
+    "metadata": {
+      "category": "Employment",
+      "version": "2.0",
+      "effective_date": "2024-01-01",
+      "department": "HR"
+    }
+  },
+  {
+    "id": "travel_1",
+    "text": "For business travel, book flights at least 14 days in advance when possible. Use the company travel portal for all bookings. Employees may keep frequent flyer miles for personal use. Rental cars must be compact or mid-size unless otherwise approved.",
+    "metadata": {
+      "category": "Travel Policy",
+      "version": "3.1",
+      "effective_date": "2024-04-01",
+      "department": "All"
+    }
+  },
+  {
+    "id": "performance_review_1",
+    "text": "Annual performance reviews are conducted in January. Employees will receive written feedback and a performance rating. Salary adjustments, if applicable, will be effective March 1st. Mid-year check-ins are conducted in July.",
+    "metadata": {
+      "category": "Performance Management",
+      "version": "1.8",
+      "effective_date": "2024-01-01",
+      "department": "HR"
+    }
+  }
+]

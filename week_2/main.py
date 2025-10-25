@@ -31,8 +31,20 @@ def main():
         }
     ]
 
-    print("=== Office Assistant ===")
-    print("Type your request (or 'exit' to quit):")
+    print("""
+=== Office Assistant ===
+I can help you with:
+- Leave requests (vacation, sick leave)
+- Work from home requests
+- Late arrival/early departure requests
+- Overtime approval requests
+- Office equipment requests
+- Meeting room bookings
+- Company policy questions
+
+💡 Tip: Add words like 'audio', 'voice', or 'speak' to your request for audio responses
+Type your request (or 'exit' to quit):
+""")
     
     while True:
         # Read user input from CLI
