@@ -13,6 +13,9 @@ import warnings
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
 
+# Fix tokenizers parallelism warning
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 class TTSManager:
     """Text-to-Speech manager using HuggingFace VITS models"""
     
