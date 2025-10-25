@@ -5,7 +5,8 @@ This office assistant now includes HuggingFace Text-to-Speech functionality usin
 ## Features
 
 - **HuggingFace VITS Models**: Uses state-of-the-art VITS (Variational Inference with adversarial learning for end-to-end Text-to-Speech) models
-- **Automatic Audio Generation**: Converts assistant responses to natural-sounding speech
+- **Conditional Audio Generation**: Only generates audio when users explicitly request it
+- **Smart Audio Detection**: Automatically detects audio requests using natural language keywords
 - **Cross-platform Audio Playback**: Works on macOS, Linux, and Windows
 - **Configurable**: Can be enabled/disabled via command line arguments
 - **Error Handling**: Graceful fallback to text-only responses if TTS fails
@@ -37,6 +38,25 @@ Run with TTS disabled:
 ```bash
 python main.py --no-tts
 ```
+
+### Requesting Audio Responses
+
+The assistant will only generate audio when you explicitly request it. Use these keywords in your requests:
+
+**Keywords that trigger audio:**
+- `audio`, `voice`, `speak`, `sound`, `hear`, `listen`
+- `with audio`, `in audio`, `as audio`, `audio please`
+- `voice please`, `speak please`, `voice response`, `audio response`
+- `speak it`, `say it`, `read it`, `read aloud`
+- `speak the`, `say the`, `tell me with`, `tell me in`
+
+**Examples:**
+- ✅ "I want to request a day off **with audio**"
+- ✅ "Can you **speak** the vacation policy?"
+- ✅ "**Tell me** about work from home **in voice**"
+- ✅ "**Read aloud** the meeting room booking process"
+- ❌ "I want to request a day off" (no audio)
+- ❌ "What's the vacation policy?" (no audio)
 
 ### Testing TTS Functionality
 

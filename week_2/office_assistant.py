@@ -360,6 +360,49 @@ def execute_function(function_name, arguments):
     except Exception as e:
         return f"Error executing function: {str(e)}"
 
+def detect_audio_request(user_message: str) -> bool:
+    """
+    Detect if user is requesting audio response
+    
+    Args:
+        user_message: User's input message
+        
+    Returns:
+        True if audio is requested, False otherwise
+    """
+    user_lower = user_message.lower()
+    
+    # Check for explicit audio/voice keywords
+    audio_keywords = [
+        'audio', 'voice', 'speak', 'sound', 'hear', 'listen', 
+        'vocal', 'spoken', 'narrate'
+    ]
+    
+    for keyword in audio_keywords:
+        if keyword in user_lower:
+            return True
+    
+    # Check for specific audio request phrases
+    audio_phrases = [
+        'with audio', 'in audio', 'as audio', 'audio please',
+        'voice please', 'speak please', 'voice response', 
+        'audio response', 'speak it', 'say it', 'read it',
+        'read aloud', 'tell me with', 'speak the', 'say the'
+    ]
+    
+    for phrase in audio_phrases:
+        if phrase in user_lower:
+            return True
+    
+    # Check for "tell me" only if it's followed by audio-related words
+    if 'tell me' in user_lower:
+        audio_context_words = ['with', 'in', 'voice', 'audio', 'speak', 'say']
+        for word in audio_context_words:
+            if f'tell me {word}' in user_lower:
+                return True
+    
+    return False
+
 def generate_audio_response(text: str, enable_tts: bool = True) -> str:
     """
     Generate audio response from text using TTS
@@ -495,8 +538,8 @@ def process_conversation(client, model, conversation_history, user_message, tool
             final_content = response.choices[0].message.content
             # print(f"AI: {final_content}")
 
-    # Generate audio response if TTS is enabled and we have content
-    if final_content and enable_tts:
+    # Generate audio response only if TTS is enabled, we have content, and user requested audio
+    if final_content and enable_tts and detect_audio_request(user_message):
         generate_audio_response(final_content, enable_tts)
 
     return conversation_history, final_content

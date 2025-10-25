@@ -43,7 +43,7 @@ def main():
 
     print("=== Office Assistant ===")
     if enable_tts:
-        print("🔊 Audio responses enabled")
+        print("🔊 Audio responses available (request with keywords like 'audio', 'voice', 'speak')")
     else:
         print("🔇 Audio responses disabled")
     
@@ -55,7 +55,8 @@ def main():
     print("- Office equipment requests")
     print("- Meeting room bookings")
     print("- Company policy questions")
-    print("\nType your request (or 'exit' to quit):")
+    print("\n💡 Tip: Add words like 'audio', 'voice', or 'speak' to your request for audio responses")
+    print("Type your request (or 'exit' to quit):")
     
     while True:
         # Read user input from CLI
