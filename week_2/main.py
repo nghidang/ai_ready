@@ -75,7 +75,7 @@ def main():
         # Process the user message
         try:
             conversation_history, final_content = process_conversation(
-                client, model, conversation_history, user_message, tools, enable_tts=enable_tts
+                client, model, conversation_history, user_message, tools, enable_tts
             )
             print(f"Assistant: {final_content or 'No response generated'}\n")
         except Exception as e:
