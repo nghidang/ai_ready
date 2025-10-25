@@ -3,7 +3,6 @@ Text-to-Speech module using HuggingFace VITS models
 """
 import os
 import torch
-import torchaudio
 from transformers import VitsModel, AutoTokenizer
 import soundfile as sf
 import tempfile
