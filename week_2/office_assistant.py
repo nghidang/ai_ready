@@ -9,9 +9,6 @@ from policy_retriever import PolicyRetriever
 # Load environment variables from .env file
 load_dotenv()
 
-# Fix tokenizers parallelism warning
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
 MAX_TOKENS = int(os.getenv('MAX_TOKENS', 200))
 if not MAX_TOKENS:
     raise ValueError("MAX_TOKENS is not set in .env file")
