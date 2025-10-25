@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import tiktoken
 import chromadb
 from sentence_transformers import SentenceTransformer
+from tts_module import get_tts_instance, text_to_speech
 
 # Load environment variables from .env file
 load_dotenv()
@@ -359,7 +360,40 @@ def execute_function(function_name, arguments):
     except Exception as e:
         return f"Error executing function: {str(e)}"
 
-def process_conversation(client, model, conversation_history, user_message, tools=tools):
+def generate_audio_response(text: str, enable_tts: bool = True) -> str:
+    """
+    Generate audio response from text using TTS
+    
+    Args:
+        text: Text to convert to speech
+        enable_tts: Whether to enable TTS functionality
+        
+    Returns:
+        Path to audio file if successful, empty string otherwise
+    """
+    if not enable_tts:
+        return ""
+    
+    try:
+        # Clean text for TTS (remove markdown formatting, etc.)
+        clean_text = text.replace('**', '').replace('*', '').replace('\n', ' ')
+        clean_text = ' '.join(clean_text.split())  # Remove extra whitespace
+        
+        # Generate audio
+        audio_path = text_to_speech(clean_text, play_audio=True)
+        
+        if audio_path:
+            print(f"🎵 Audio response generated: {audio_path}")
+            return audio_path
+        else:
+            print("⚠️  TTS generation failed, showing text only")
+            return ""
+            
+    except Exception as e:
+        print(f"⚠️  TTS error: {e}")
+        return ""
+
+def process_conversation(client, model, conversation_history, user_message, tools=tools, enable_tts: bool = True):
     """Process a single user message and return the updated history and response"""
     encoding = tiktoken.get_encoding("cl100k_base")  # Hoặc chọn tokenizer phù hợp
     token_count = len(encoding.encode(user_message))
@@ -460,5 +494,9 @@ def process_conversation(client, model, conversation_history, user_message, tool
         if response.choices[0].message.content and not final_content:
             final_content = response.choices[0].message.content
             # print(f"AI: {final_content}")
+
+    # Generate audio response if TTS is enabled and we have content
+    if final_content and enable_tts:
+        generate_audio_response(final_content, enable_tts)
 
     return conversation_history, final_content
