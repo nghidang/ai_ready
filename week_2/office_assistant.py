@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import tiktoken
 import chromadb
 from sentence_transformers import SentenceTransformer
-from tts_module import get_tts_instance, text_to_speech
+from tts_module import text_to_speech
 
 # Load environment variables from .env file
 load_dotenv()
@@ -127,7 +127,7 @@ You are an internal office assistant that helps employees handle internal reques
     6. Booking meeting rooms
     7. Answering questions about company policies
 When responding, always:
-    - Respond with the result from the appropriate tool.
+    - Respond shortly and concisely with the result from the appropriate tool.
     - Be polite, concise, and professional.
     - Confirm all key details (date, time, reason, duration, etc.).
     - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
