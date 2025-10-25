@@ -31,17 +31,20 @@ def main():
         }
     ]
 
-    print("=== Office Assistant ===")
-    print("I can help you with:")
-    print("- Leave requests (vacation, sick leave)")
-    print("- Work from home requests")
-    print("- Late arrival/early departure requests")
-    print("- Overtime approval requests")
-    print("- Office equipment requests")
-    print("- Meeting room bookings")
-    print("- Company policy questions")
-    print("\n💡 Tip: Add words like 'audio', 'voice', or 'speak' to your request for audio responses")
-    print("Type your request (or 'exit' to quit):")
+    print("""
+=== Office Assistant ===
+I can help you with:
+- Leave requests (vacation, sick leave)
+- Work from home requests
+- Late arrival/early departure requests
+- Overtime approval requests
+- Office equipment requests
+- Meeting room bookings
+- Company policy questions
+
+💡 Tip: Add words like 'audio', 'voice', or 'speak' to your request for audio responses
+Type your request (or 'exit' to quit):
+""")
     
     while True:
         # Read user input from CLI
