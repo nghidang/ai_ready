@@ -3,6 +3,8 @@ import openai
 import os
 from dotenv import load_dotenv
 import tiktoken
+import chromadb
+from sentence_transformers import SentenceTransformer
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,21 +13,125 @@ MAX_TOKENS = int(os.getenv('MAX_TOKENS', 200))
 if not MAX_TOKENS:
     raise ValueError("MAX_TOKENS is not set in .env file")
 
+# Initialize ChromaDB and embedding model
+def initialize_chroma_db():
+    """Initialize ChromaDB client and embedding model"""
+    try:
+        # Initialize ChromaDB client
+        client = chromadb.PersistentClient(path="./chroma_db")
+        
+        # Initialize embedding model
+        embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        # Get or create collection
+        collection = client.get_or_create_collection(
+            name="policies",
+            metadata={"hnsw:space": "cosine"}
+        )
+        
+        return client, collection, embedding_model
+    except Exception as e:
+        print(f"Error initializing ChromaDB: {e}")
+        return None, None, None
+
+# Initialize ChromaDB components
+chroma_client, policies_collection, embedding_model = initialize_chroma_db()
+
+def load_policies_to_chroma():
+    """Load policies from JSON file into ChromaDB"""
+    if not policies_collection or not embedding_model:
+        return False
+    
+    try:
+        # Load policies from JSON file
+        with open('example_policies.json', 'r') as f:
+            policies = json.load(f)
+        
+        # Check if policies are already loaded
+        if policies_collection.count() > 0:
+            print("Policies already loaded in ChromaDB")
+            return True
+        
+        # Prepare data for ChromaDB
+        documents = []
+        metadatas = []
+        ids = []
+        
+        for policy in policies:
+            documents.append(policy['text'])
+            metadatas.append(policy['metadata'])
+            ids.append(policy['id'])
+        
+        # Add to ChromaDB
+        policies_collection.add(
+            documents=documents,
+            metadatas=metadatas,
+            ids=ids
+        )
+        
+        print(f"Loaded {len(policies)} policies into ChromaDB")
+        return True
+        
+    except Exception as e:
+        print(f"Error loading policies: {e}")
+        return False
+
+def query_policies(question, n_results=3):
+    """Query policies using semantic search"""
+    if not policies_collection or not embedding_model:
+        return "Policy database not available. Please check ChromaDB setup."
+    
+    try:
+        # Generate embedding for the question
+        query_embedding = embedding_model.encode(question).tolist()
+        
+        # Search in ChromaDB
+        results = policies_collection.query(
+            query_embeddings=[query_embedding],
+            n_results=n_results
+        )
+        
+        if not results['documents'] or not results['documents'][0]:
+            return "No relevant policies found."
+        
+        # Format results
+        formatted_results = []
+        for i, (doc, metadata, distance) in enumerate(zip(
+            results['documents'][0],
+            results['metadatas'][0],
+            results['distances'][0]
+        )):
+            formatted_results.append({
+                'text': doc,
+                'metadata': metadata,
+                'relevance_score': 1 - distance  # Convert distance to similarity
+            })
+        
+        return formatted_results
+        
+    except Exception as e:
+        return f"Error querying policies: {str(e)}"
+
+# Load policies on startup
+load_policies_to_chroma()
+
 # System prompt for the assistant
 SYSTEM_PROMPT = """
-You are an internal office assistant that helps employees handle internal requests. Your only responsibilities include:
+You are an internal office assistant that helps employees handle internal requests. Your responsibilities include:
     1. Submitting leave requests (vacation, sick leave, etc.)
     2. Requesting to work remotely
     3. Requesting to arrive late or leave early
     4. Requesting overtime approval
     5. Requesting office equipment or supplies
     6. Booking meeting rooms
+    7. Answering questions about company policies
 When responding, always:
     - Respond with the result from the appropriate tool.
     - Be polite, concise, and professional.
     - Confirm all key details (date, time, reason, duration, etc.).
     - Provide a clear summary of the request and next steps (e.g., who will approve it, when confirmation will be sent).
     - Use a friendly but business-appropriate tone.
+    - When answering policy questions, provide accurate information based on the company policies and cite relevant policy details.
 """
 
 # Define tools
@@ -164,6 +270,23 @@ tools = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "query_policy",
+            "description": "Answer questions about company policies by searching the policy database.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "description": "The policy question to search for",
+                    },
+                },
+                "required": ["question"],
+            },
+        },
+    },
 ]
 
 # Define functions
@@ -187,6 +310,31 @@ def request_assets(assets):
 def book_meeting_room(date, start_time, duration, room_id):
     return f"Meeting room {room_id} booked on {date} from {start_time} for {duration} hours."
 
+def query_policy(question):
+    """Query company policies and return relevant information"""
+    try:
+        results = query_policies(question)
+        
+        if isinstance(results, str):  # Error message
+            return results
+        
+        if not results:
+            return "No relevant policies found for your question."
+        
+        # Format the response
+        response = "Based on company policies:\n\n"
+        for i, result in enumerate(results, 1):
+            response += f"{i}. **{result['metadata']['category']}** (Relevance: {result['relevance_score']:.2f})\n"
+            response += f"   {result['text']}\n"
+            if 'effective_date' in result['metadata']:
+                response += f"   *Effective: {result['metadata']['effective_date']}*\n"
+            response += "\n"
+        
+        return response
+        
+    except Exception as e:
+        return f"Error querying policies: {str(e)}"
+
 def execute_function(function_name, arguments):
     """Helper function to execute the appropriate function based on the tool call"""
     try:
@@ -202,6 +350,8 @@ def execute_function(function_name, arguments):
             return request_assets(arguments["assets"])
         elif function_name == "book_meeting_room":
             return book_meeting_room(arguments["date"], arguments["start_time"], arguments["duration"], arguments["room_id"])
+        elif function_name == "query_policy":
+            return query_policy(arguments["question"])
         else:
             return f"Unknown function: {function_name}"
     except KeyError as e:

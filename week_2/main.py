@@ -32,7 +32,15 @@ def main():
     ]
 
     print("=== Office Assistant ===")
-    print("Type your request (or 'exit' to quit):")
+    print("I can help you with:")
+    print("- Leave requests (vacation, sick leave)")
+    print("- Work from home requests")
+    print("- Late arrival/early departure requests")
+    print("- Overtime approval requests")
+    print("- Office equipment requests")
+    print("- Meeting room bookings")
+    print("- Company policy questions")
+    print("\nType your request (or 'exit' to quit):")
     
     while True:
         # Read user input from CLI
