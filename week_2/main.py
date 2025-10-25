@@ -23,7 +23,6 @@ client = openai.OpenAI(
 )
 
 def main():
-    
     # Initialize conversation history
     conversation_history = [
         {
@@ -32,9 +31,7 @@ def main():
         }
     ]
 
-    print("=== Office Assistant ===")
-    print("🔊 Audio responses available (request with keywords like 'audio', 'voice', 'speak')")
-    
+    print("=== Office Assistant ===")    
     print("I can help you with:")
     print("- Leave requests (vacation, sick leave)")
     print("- Work from home requests")
