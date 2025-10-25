@@ -31,7 +31,7 @@ def main():
         }
     ]
 
-    print("=== Office Assistant ===")    
+    print("=== Office Assistant ===")
     print("I can help you with:")
     print("- Leave requests (vacation, sick leave)")
     print("- Work from home requests")
@@ -59,9 +59,7 @@ def main():
         
         # Process the user message
         try:
-            conversation_history, final_content = process_conversation(
-                client, model, conversation_history, user_message, tools
-            )
+            conversation_history, final_content = process_conversation(client, model, conversation_history, user_message, tools)
             print(f"Assistant: {final_content or 'No response generated'}\n")
         except Exception as e:
             print(f"Error processing request: {str(e)}\n")
