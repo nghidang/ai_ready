@@ -7,10 +7,6 @@ import tiktoken
 # Load environment variables from .env file
 load_dotenv()
 
-model = os.getenv('MODEL')
-if not model:
-    raise ValueError("MODEL is not set in .env file")
-
 MAX_TOKENS = int(os.getenv('MAX_TOKENS', 200))
 if not MAX_TOKENS:
     raise ValueError("MAX_TOKENS is not set in .env file")
@@ -215,7 +211,7 @@ def execute_function(function_name, arguments):
 
 def process_conversation(client, model, conversation_history, user_message, tools=tools):
     """Process a single user message and return the updated history and response"""
-    encoding = tiktoken.encoding_for_model("model")
+    encoding = tiktoken.get_encoding("cl100k_base")  # Hoặc chọn tokenizer phù hợp
     token_count = len(encoding.encode(user_message))
 
     if token_count > MAX_TOKENS:
